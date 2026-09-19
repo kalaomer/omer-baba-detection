@@ -262,7 +262,11 @@ npm run models:fetch     # InsightFace buffalo_sc'yi indirir, çıktı boyutlar�
 npm run setup:vendor     # onnxruntime-web ve popup fontları -> extension/
 npm run setup:icons      # eklenti ikonları
 npm run setup:button     # README'deki "Kahve hediye et" butonu (assets/)
+npm run store:assets     # Chrome Web Store ikonu, ekran görüntüleri ve tanıtım görselleri (store/)
+npm run package          # Web Store'a yüklenecek paket: dist/omer-baba-atlatici-<sürüm>.zip
 ```
+
+Web Store panelindeki tüm alanların değerleri: [store/listing.md](store/listing.md).
 
 ## Geliştirme
 

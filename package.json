@@ -6,6 +6,7 @@
     "setup:vendor": "node tools/copy-vendor.mjs",
     "setup:icons": "node tools/make-icons.mjs",
     "setup:button": "node tools/make-bmc-button.mjs",
+    "store:assets": "node tools/make-icons.mjs && node tools/make-store-assets.mjs",
     "package": "mkdir -p dist && rm -f dist/omer-baba-atlatici-$(node -p \"require('./extension/manifest.json').version\").zip && cd extension && zip -r -X -q ../dist/omer-baba-atlatici-$(node -p \"require('./manifest.json').version\").zip . -x '*.DS_Store' -x '__MACOSX/*' && cd .. && ls -la dist",
     "models:fetch": "uv run --python 3.12 --with onnx tools/fetch-models.py",
     "data:download": "uv run --python 3.12 --upgrade-package yt-dlp --with-requirements tools/requirements.txt tools/download-videos.py",

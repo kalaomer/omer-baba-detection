@@ -1,13 +1,28 @@
-// Eklenti ikonlarını tek bir SVG'den üretir: kırmızı zemin üzerinde "ileri sar" işareti.
+// Eklenti ikonlarını üretir: Pusu kırmızısı zemin üzerinde "ileri sar" işareti (popup'taki işaretle aynı).
+// 128 px ikon Chrome Web Store kuralına göre 96 px çizim + her yanda 16 px şeffaf boşluktur;
+// araç çubuğundaki küçük boyutlar (16/32/48) okunaklı olsun diye kenara kadar doludur.
+import fs from 'node:fs';
 import sharp from 'sharp';
 
-const svg = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="28" fill="#cc0000"/>
-  <path d="M30 36 L62 64 L30 92 Z M62 36 L94 64 L62 92 Z" fill="#fff"/>
-  <rect x="94" y="36" width="10" height="56" rx="3" fill="#fff"/>
-</svg>`);
+const GLYPH =
+  'M3 5.2c0-.8.9-1.3 1.6-.8l7.4 6.1c.5.4.5 1.1 0 1.5l-7.4 6.1c-.7.5-1.6 0-1.6-.8V5.2Zm8 0c0-.8.9-1.3 1.6-.8l7.4 6.1c.5.4.5 1.1 0 1.5l-7.4 6.1c-.7.5-1.6 0-1.6-.8V5.2Z';
 
-for (const size of [16, 32, 48, 128]) {
-  await sharp(svg).resize(size, size).png().toFile(`extension/icons/${size}.png`);
+// 96x96 çizim; offset ile 128'lik tuvale yerleştirilir
+const art = (offset) => `
+  <g transform="translate(${offset} ${offset})">
+    <rect width="96" height="96" rx="22" fill="#d62839"/>
+    <g transform="translate(22.5 21.6) scale(2.2)" fill="#fff">
+      <path d="${GLYPH}"/><rect x="20" y="4.5" width="2.4" height="15" rx="1.2"/>
+    </g>
+  </g>`;
+
+const padded = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">${art(16)}</svg>`);
+const full = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="512" height="512">${art(0)}</svg>`);
+
+for (const size of [16, 32, 48]) {
+  await sharp(full).resize(size, size).png().toFile(`extension/icons/${size}.png`);
 }
-console.log('ikonlar hazır');
+await sharp(padded).png().toFile('extension/icons/128.png');
+fs.mkdirSync('store', { recursive: true });
+fs.copyFileSync('extension/icons/128.png', 'store/icon-128.png');
+console.log('ikonlar hazır (extension/icons, store/icon-128.png)');
