@@ -286,6 +286,9 @@ oluşturur. Aynı zip Chrome Web Store'a da yüklenebilir.
 
 ## Geliştirme
 
+Kodla çalışan yapay zekâ ajanları için mimari, değişmez kurallar ve bu projede yaşanmış tuzaklar:
+[AGENTS.md](AGENTS.md).
+
 ### Uçtan uca testler
 
 `tools/e2e.mjs`, eklentiyi Playwright'ın Chromium'una yükleyip gerçek bir YouTube videosunu
