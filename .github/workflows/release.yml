@@ -1,0 +1,50 @@
+# Sürüm paketi: v* etiketi gönderilince eklentiyi paketler ve GitHub Release'e ekler.
+# Elle çalıştırıldığında (workflow_dispatch) yalnızca paketi üretir ve Actions çıktısı olarak saklar;
+# Release oluşturmaz. Yeni sürüm için: manifest sürümünü artır, commit'le, `git tag v<sürüm> && git push --tags`.
+name: Sürüm paketi
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Sürümü doğrula
+        id: version
+        run: |
+          VERSION=$(node -p "require('./extension/manifest.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if [ "$GITHUB_REF_TYPE" = "tag" ] && [ "$GITHUB_REF_NAME" != "v$VERSION" ]; then
+            echo "::error::Etiket ($GITHUB_REF_NAME) extension/manifest.json sürümüyle (v$VERSION) uyuşmuyor"
+            exit 1
+          fi
+
+      - name: Paketle
+        run: npm run package
+
+      - name: Paketi Actions çıktısı olarak sakla
+        uses: actions/upload-artifact@v4
+        with:
+          name: omer-baba-atlatici-${{ steps.version.outputs.version }}
+          path: dist/*.zip
+
+      - name: GitHub Release oluştur
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/*.zip \
+            --title "Ömer Baba Atlatıcı ${{ steps.version.outputs.version }}" \
+            --notes-file .github/release-notes.md

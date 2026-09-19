@@ -19,12 +19,16 @@ hiçbir kare dışarı gönderilmez.
 
 ## Kurulum
 
-Derleme gerekmez; `extension/` klasörü yüklenmeye hazırdır.
+**Hazır paketle (önerilen):** [Releases](https://github.com/kalaomer/omer-baba-detection/releases)
+sayfasından son sürümün `omer-baba-atlatici-…zip` dosyasını indirip bir klasöre aç.
+**Depodan:** Depoyu indir ya da klonla; `extension/` klasörü yüklenmeye hazırdır, derleme gerekmez.
 
-1. Depoyu indir ya da klonla.
-2. `chrome://extensions` sayfasını aç, sağ üstten **Geliştirici modu**nu aç.
-3. **Paketlenmemiş öğe yükle** butonuna bas ve `extension/` klasörünü seç.
-4. YouTube'da bir Kurtlar Vadisi Pusu videosu aç. Model ilk oynatmada ~1 saniyede yüklenir.
+1. `chrome://extensions` sayfasını aç, sağ üstten **Geliştirici modu**nu aç.
+2. **Paketlenmemiş öğe yükle** butonuna bas ve zip'ten çıkan klasörü (ya da `extension/`) seç.
+3. YouTube'da bir Kurtlar Vadisi Pusu videosu aç. Model ilk oynatmada ~1 saniyede yüklenir.
+
+Elle kurulan sürüm otomatik güncellenmez; yeni sürümde dosyaları yenileyip `chrome://extensions`
+sayfasında eklentinin **Yenile** simgesine bas.
 
 ## Kullanım
 
@@ -267,6 +271,18 @@ npm run package          # Web Store'a yüklenecek paket: dist/omer-baba-atlatic
 ```
 
 Web Store panelindeki tüm alanların değerleri: [store/listing.md](store/listing.md).
+
+### Sürüm yayınlama
+
+`extension/manifest.json` içindeki `version`'ı artır, commit'le ve etiketi gönder:
+
+```bash
+git tag v0.5.2 && git push origin v0.5.2
+```
+
+GitHub Actions (`.github/workflows/release.yml`) etiketin manifest sürümüyle uyuştuğunu kontrol
+eder, paketi üretir ve kurulum talimatlarıyla (`.github/release-notes.md`) bir GitHub Release
+oluşturur. Aynı zip Chrome Web Store'a da yüklenebilir.
 
 ## Geliştirme
 
