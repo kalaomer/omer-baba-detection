@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="tr">
+<meta charset="utf-8">
+<title>Ömer Baba Atlatıcı</title>
+<link rel="stylesheet" href="popup.css">
+<body>
+<main>
+  <header class="top">
+    <div class="brand">
+      <span class="mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M3 5.2c0-.8.9-1.3 1.6-.8l7.4 6.1c.5.4.5 1.1 0 1.5l-7.4 6.1c-.7.5-1.6 0-1.6-.8V5.2Zm8 0c0-.8.9-1.3 1.6-.8l7.4 6.1c.5.4.5 1.1 0 1.5l-7.4 6.1c-.7.5-1.6 0-1.6-.8V5.2Z"/><rect x="20" y="4.5" width="2.4" height="15" rx="1.2"/></svg>
+      </span>
+      <h1>Ömer Baba <em>Atlatıcı</em></h1>
+    </div>
+    <input type="checkbox" role="switch" class="switch switch-lg" id="enabled" aria-label="Eklentiyi aç ya da kapat" title="Eklentiyi aç ya da kapat">
+  </header>
+
+  <section class="card status" id="status" data-tone="idle" aria-live="polite">
+    <div class="status-head">
+      <span class="status-dot" aria-hidden="true"></span>
+      <strong id="statusWord">Bekleniyor</strong>
+      <span class="status-meta" id="statusMeta"></span>
+    </div>
+    <p class="status-line" id="statusLine">&nbsp;</p>
+    <div class="strip" id="strip" hidden>
+      <div class="strip-track" id="stripTrack"><span class="strip-covered" id="stripCovered"></span></div>
+      <div class="strip-legend">
+        <span class="strip-note" id="stripNote"></span>
+        <span>30 sn</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="group" aria-labelledby="g-skip">
+    <h2 id="g-skip">Atlama</h2>
+    <div class="card list">
+      <label class="opt">
+        <span class="opt-text"><span class="opt-title">Önden tara</span><span class="opt-desc">Ömer Baba görünmeden sahneyi geçer</span></span>
+        <input type="checkbox" role="switch" class="switch" id="lookahead">
+      </label>
+      <label class="opt">
+        <span class="opt-text"><span class="opt-title">Yalnızca tek başınayken</span><span class="opt-desc">Yanında biri varsa sahneyi izlersin</span></span>
+        <input type="checkbox" role="switch" class="switch" id="alone">
+      </label>
+      <div class="opt">
+        <span class="opt-text">
+          <label class="opt-title" for="episodeCutoff">Ömer Baba'sız bölümler</label>
+          <span class="opt-desc"><input type="number" id="episodeFrom" min="1" max="999" inputmode="numeric" aria-label="Başlangıç bölümü">. bölüm ve sonrasını tarama</span>
+        </span>
+        <input type="checkbox" role="switch" class="switch" id="episodeCutoff">
+      </div>
+    </div>
+  </section>
+
+  <section class="group" aria-labelledby="g-channels">
+    <div class="group-head">
+      <h2 id="g-channels">Kanallar</h2>
+      <button type="button" class="head-action" id="channelAddToggle" aria-expanded="false" aria-controls="channelForm">+ Kanal ekle</button>
+    </div>
+    <div class="card list">
+      <div class="opt opt-top">
+        <span class="opt-text">
+          <label class="opt-title" for="channelFilter">Yalnızca bu kanallarda</label>
+          <ul class="chips" id="channelList"></ul>
+          <span class="opt-desc" id="channelEmpty" hidden>Liste boş: her kanalda çalışır</span>
+        </span>
+        <input type="checkbox" role="switch" class="switch" id="channelFilter">
+      </div>
+      <form class="add" id="channelForm" hidden>
+        <input type="text" id="channelInput" placeholder="@kanal ya da bağlantı" autocomplete="off" spellcheck="false" aria-label="Kanal">
+        <button type="submit" class="btn btn-solid">Ekle</button>
+      </form>
+    </div>
+  </section>
+
+  <details class="group advanced" id="advanced">
+    <summary>
+      <h2>Gelişmiş</h2>
+      <svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 3.5 10 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </summary>
+    <div class="card list">
+      <div class="opt opt-slider">
+        <div class="slider-head">
+          <label class="opt-title" for="threshold">Tanıma eşiği</label>
+          <output id="thresholdOut" for="threshold"></output>
+        </div>
+        <input type="range" id="threshold" min="0.30" max="0.56" step="0.01">
+        <div class="slider-hint"><span>Daha çok yakalar</span><span>Daha az yanılır</span></div>
+      </div>
+      <label class="opt">
+        <span class="opt-text"><span class="opt-title">Debug katmanı</span><span class="opt-desc">Yüz kutuları ve skorlar videoda görünür</span></span>
+        <input type="checkbox" role="switch" class="switch" id="debug">
+      </label>
+      <div class="actions" role="group" aria-labelledby="resetLabel">
+        <span class="actions-label" id="resetLabel">Sıfırla</span>
+        <button type="button" class="btn" id="resetThreshold" aria-label="Eşiği sıfırla">Eşik</button>
+        <button type="button" class="btn" id="resetChannels" aria-label="Kanalları sıfırla">Kanallar</button>
+        <button type="button" class="btn" id="resetStats" aria-label="Sayaçları sıfırla">Sayaçlar</button>
+      </div>
+    </div>
+  </details>
+
+  <footer class="bottom">
+    <p class="stats"><b id="skips">0</b> sahne geçildi<br><b id="saved">0 sn</b> kazanıldı</p>
+    <a class="bmc" href="https://www.buymeacoffee.com/kalaomer" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 9.5h11.2v5.3a4.7 4.7 0 0 1-4.7 4.7H9.2a4.7 4.7 0 0 1-4.7-4.7V9.5Z" fill="#fff" stroke="#000" stroke-width="1.4" stroke-linejoin="round"/><path d="M15.7 11h1.4a2.4 2.4 0 0 1 0 4.8h-1.8" fill="none" stroke="#000" stroke-width="1.4" stroke-linecap="round"/><path d="M8 3.8c-.6.8.6 1.4 0 2.4M11.2 3.8c-.6.8.6 1.4 0 2.4" fill="none" stroke="#000" stroke-width="1.3" stroke-linecap="round"/></svg>
+      <span>Kahve hediye et</span>
+    </a>
+  </footer>
+</main>
+<script src="channels.js"></script>
+<script src="popup.js"></script>
+</body>
+</html>

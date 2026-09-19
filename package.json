@@ -1,0 +1,34 @@
+{
+  "name": "omer-baba-detection",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "setup:vendor": "node tools/copy-vendor.mjs",
+    "setup:icons": "node tools/make-icons.mjs",
+    "setup:button": "node tools/make-bmc-button.mjs",
+    "package": "mkdir -p dist && rm -f dist/omer-baba-atlatici-$(node -p \"require('./extension/manifest.json').version\").zip && cd extension && zip -r -X -q ../dist/omer-baba-atlatici-$(node -p \"require('./manifest.json').version\").zip . -x '*.DS_Store' -x '__MACOSX/*' && cd .. && ls -la dist",
+    "models:fetch": "uv run --python 3.12 --with onnx tools/fetch-models.py",
+    "data:download": "uv run --python 3.12 --upgrade-package yt-dlp --with-requirements tools/requirements.txt tools/download-videos.py",
+    "data:faces": "node tools/extract-faces.mjs data/videos/train data/faces/train 1 && node tools/extract-faces.mjs data/videos/test data/faces/test 1 && node tools/extract-faces.mjs data/videos/neg data/faces/neg 0.5 && node tools/extract-faces.mjs data/videos/episode data/faces/episode 0.5",
+    "refs:build": "uv run --python 3.12 --with-requirements tools/requirements.txt tools/build-refs.py --pos data/faces/train data/faces/test --neg data/faces/neg --sheet data/reports/tohum-kume.jpg",
+    "refs:eval": "uv run --python 3.12 --with-requirements tools/requirements.txt tools/evaluate.py --train data/faces/train --test data/faces/test --neg data/faces/neg --report data/reports",
+    "report:episode": "uv run --python 3.12 --with-requirements tools/requirements.txt tools/episode-report.py data/faces/episode --json data/reports/bolum.json",
+    "test:e2e": "node tools/e2e.mjs mTZTz3yT3PA 45 --start=4225"
+  },
+  "devDependencies": {
+    "@fontsource/big-shoulders-display": "^5.3.0",
+    "@fontsource/lato": "^5.3.0",
+    "onnxruntime-node": "^1.30.0",
+    "onnxruntime-web": "^1.30.0",
+    "opentype.js": "^2.0.0",
+    "playwright": "^1.63.0",
+    "sharp": "^0.35.4"
+  },
+  "description": "YouTube'da Kurtlar Vadisi Pusu'nun Ömer Baba sahnelerini yüz tanımayla, tarayıcıda atlayan Chrome eklentisi",
+  "license": "MIT",
+  "author": "Ömer Kala",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kalaomer/omer-baba-detection.git"
+  }
+}

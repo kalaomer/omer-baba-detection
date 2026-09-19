@@ -1,0 +1,32 @@
+{
+  "_not": "Referans vektörünü üretmek ve doğrulamak için kullanılan YouTube videoları. train + test: Ömer Baba sahneleri (pozitif; merkez ikisiyle kurulur, evaluate.py test'i ayrı tutar). neg: Ömer Baba'nın olmadığı orijinal Kurtlar Vadisi bölümleri. episode: tam bir Pusu bölümü (233); gerçek sahne zaman çizelgesi, önden tarama ve storyboard deneyleri için.",
+  "train": [
+    "sQvQlLw3DzI",
+    "eZbhIwqXKBg",
+    "HjzZxpCYBco",
+    "wSgZYe2k_OY",
+    "hdhb-PM7cko",
+    "fQ-3-xEqGT0",
+    "4vrq5mVQras",
+    "UNj41Q-3Iwo",
+    "oUVkCegSlNE"
+  ],
+  "test": [
+    "9GYh_CE7hm0",
+    "MzvfI5b_WUE",
+    "VDtf9lAmpvM",
+    "E6-YMz3596c",
+    "9wlOufboEpo",
+    "xnFAfBBgjls",
+    "lyVulW9qqLI"
+  ],
+  "neg": [
+    "Eyw6hJYV190",
+    "0Y8fiuIvkJc",
+    "IPwAfYRNtlA",
+    "mavXENicQMw"
+  ],
+  "episode": [
+    "mTZTz3yT3PA"
+  ]
+}

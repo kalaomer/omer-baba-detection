@@ -1,0 +1,6 @@
+# Model üretim hattının Python bağımlılıkları (uv run --with-requirements tools/requirements.txt ...)
+numpy
+scikit-learn
+pillow
+onnx
+yt-dlp[default]

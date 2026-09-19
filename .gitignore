@@ -1,0 +1,16 @@
+# Bağımlılıklar ve yerel ortamlar
+node_modules/
+.venv/
+__pycache__/
+
+# Model üretim verisi: YouTube videoları, kareler, yüz kırpıntıları ve embedding'ler.
+# Telifli içerik ve gerçek bir kişinin yüz verisi; depoya girmez. tools/dataset.json'dan yeniden üretilir.
+data/
+
+# Paketlenmiş eklenti ve yerel çıktılar (npm run package -> dist/)
+dist/
+*.zip
+*.crx
+*.pem
+*.log
+.DS_Store
