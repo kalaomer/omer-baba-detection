@@ -13,20 +13,20 @@ Finder'ın "Sıkıştır" özelliği dosyaları klasörün içine koyar ve `__MA
 **Açıklama (Detailed description)**
 
 ```
-Kurtlar Vadisi Pusu izlerken Ömer Baba sahnelerini otomatik geçer.
+Ömer Baba'nın sahnelerini geçmek için artık vakit harcamaya gerek yok. Ömer Baba ile eğitilmiş model sizin için sahneleri otomatik geçer.
 
-Ömer Baba Atlatıcı, YouTube videolarında Ömer Baba'nın yakın ya da orta planda göründüğü sahneleri yüz tanımayla bulur ve atlar. Her şey bilgisayarında çalışır; hiçbir görüntü dışarı gönderilmez.
+Ömer Baba Atlatıcı, YouTube'da Kurtlar Vadisi Pusu izlerken Ömer Baba'nın yakın ya da orta planda göründüğü sahneleri yüz tanımayla bulur ve atlar. Her şey bilgisayarınızda çalışır; hiçbir görüntü dışarı gönderilmez.
 
 ÖZELLİKLER
 • Görünmeden atlama: YouTube'un zaten indirdiği ileri kareleri önden tarar, Ömer Baba ekrana gelmeden sahnenin sonuna geçer.
-• Canlı şerit: Popup'ta önümüzdeki 30 saniyeyi ve yaklaşan sahneleri görürsün.
-• Yalnızca tek başınayken: İstersen Ömer Baba karede başka biriyle birlikteyken sahneyi atlamaz.
-• Kanal filtresi: Varsayılan olarak yalnızca @KurtlarVadisi ve @KurtlarVadisiOfficial videolarında çalışır; listeyi sen düzenlersin.
+• Canlı şerit: Popup'ta önümüzdeki 30 saniyeyi ve yaklaşan sahneleri görürsünüz.
+• Yalnızca tek başınayken: İsterseniz Ömer Baba karede başka biriyle birlikteyken sahneyi atlamaz.
+• Kanal filtresi: Varsayılan olarak yalnızca @KurtlarVadisi ve @KurtlarVadisiOfficial videolarında çalışır; listeyi siz düzenlersiniz.
 • Ömer Baba'sız bölümler: Başlığında 235. bölüm ve sonrası yazan videolarda tarama yapmaz.
 • Kaçış yolları: Perdede "Yine de izle", atlamadan sonra "Geri al".
 
 GİZLİLİK
-Video kareleri, eklentiyle birlikte gelen bir yüz tanıma modeliyle bilgisayarında analiz edilir; kaydedilmez ve hiçbir yere gönderilmez. Eklentinin sunucusu, analitiği ya da izleme kodu yoktur. Yalnızca YouTube izleme sayfalarında çalışır, Shorts'ta çalışmaz.
+Video kareleri, eklentiyle birlikte gelen bir yüz tanıma modeliyle bilgisayarınızda analiz edilir; kaydedilmez ve hiçbir yere gönderilmez. Eklentinin sunucusu, analitiği ya da izleme kodu yoktur. Yalnızca YouTube izleme sayfalarında çalışır, Shorts'ta çalışmaz.
 
 AÇIK KAYNAK
 Kaynak kodu, model üretim hattı ve testler (MIT lisansı): https://github.com/kalaomer/omer-baba-detection
@@ -88,13 +88,18 @@ yerelde işlenen verinin de beyan edilmesini istiyor; eklenti YouTube karelerini
 
 ## Test talimatları (Test instructions)
 
-İnceleyiciler için; giriş ya da hesap gerekmez.
+İnceleyiciler için; giriş ya da hesap gerekmez. Alan en fazla 500 karakter; kullanıcı adı ve şifre boş kalır.
 
 ```
-No account or login is needed. The UI is in Turkish.
-1. Open https://www.youtube.com/watch?v=VDtf9lAmpvM (a Kurtlar Vadisi Pusu clip from the @KurtlarVadisi channel) and let it play.
-2. Within a few seconds the extension skips the scenes where the character Ömer Baba appears. After each skip a notification "Ömer Baba sahnesi geçildi" (scene skipped) appears with a "Geri al" (Undo) button.
-3. Click the toolbar icon: the popup shows "Çalışıyor" (active) and a strip of the next 30 seconds with upcoming scenes in red.
-4. The extension stays inactive on other channels, e.g. https://www.youtube.com/watch?v=3kS_bojhZt8 shows "Taranmıyor" (not scanning), and on YouTube Shorts.
-5. Optional: Popup > "Gelişmiş" > "Debug katmanı" draws face boxes and similarity scores on the video.
+No login needed; the UI is in Turkish. Open https://www.youtube.com/watch?v=VDtf9lAmpvM (Kurtlar Vadisi Pusu, @KurtlarVadisi channel) and play it. Within seconds the extension skips the scenes with the character Ömer Baba and shows "Ömer Baba sahnesi geçildi" with an Undo ("Geri al") button. The toolbar popup shows "Çalışıyor" and a 30 s look-ahead strip. It stays inactive on other channels and on Shorts. Popup > Gelişmiş > Debug katmanı draws face boxes.
 ```
+
+## Yayıncı ayarları (Settings)
+
+Hesap düzeyindedir, eklentiye özel değildir.
+
+| Alan | Değer |
+|---|---|
+| Yayıncı görünen adı | kalaomer |
+| İletişim e-postası (herkese açık görünür, doğrulanmalı) | me@kalaomer.com |
+| Tacir beyanı | Tacir değil (non-trader) |
