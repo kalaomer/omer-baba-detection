@@ -2,7 +2,8 @@
    YouTube oynatıcısının içinde yaşar; onun yazı tipini ve koyu yüzeylerini izler. */
 
 .obs-cover,
-.obs-toast {
+.obs-toast,
+.obs-ask {
   --obs-accent: #ff4e5c;
   --obs-ease: cubic-bezier(0.2, 0, 0, 1);
   font-family: "YouTube Sans", Roboto, system-ui, sans-serif;
@@ -12,6 +13,7 @@
 
 .obs-cover[hidden],
 .obs-toast[hidden],
+.obs-ask[hidden],
 .obs-toast-action[hidden] {
   display: none !important;
 }
@@ -110,7 +112,8 @@
 /* ---------- Butonlar ---------- */
 
 .obs-btn,
-.obs-toast-action {
+.obs-toast-action,
+.obs-ask-close {
   position: relative;
   appearance: none;
   border: 0;
@@ -135,22 +138,28 @@
 }
 
 .obs-btn:active,
-.obs-toast-action:active {
+.obs-toast-action:active,
+.obs-ask-close:active {
   scale: 0.96;
 }
 
 .obs-btn:focus-visible,
-.obs-toast-action:focus-visible {
+.obs-toast-action:focus-visible,
+.obs-ask-close:focus-visible {
   outline: 2px solid #fff;
   outline-offset: 2px;
 }
 
-/* ---------- Toast ---------- */
+/* ---------- Kutular: bildirim ve bilirkişi ---------- */
 
-.obs-toast {
+.obs-toast,
+.obs-ask {
   position: absolute;
   left: 12px;
-  bottom: 60px;
+  /* Oynatıcının ilerleme çubuğu, bölüm işaretleri ve önizlemesi 72px'e kadar tıklamayı yakalıyor:
+     kutu bunların üstünde dursun, yoksa sahne seçme kullanılamıyor. */
+  --obs-lift: 88px;
+  bottom: var(--obs-lift);
   z-index: 2147483001;
   display: flex;
   align-items: center;
@@ -171,7 +180,8 @@
   transition-timing-function: var(--obs-ease);
 }
 
-.obs-toast.is-open {
+.obs-toast.is-open,
+.obs-ask.is-open {
   opacity: 1;
   translate: 0 0;
 }
@@ -182,9 +192,21 @@
   transition-duration: 160ms;
 }
 
-/* Kontrol çubuğu gizlenince toast da aşağı insin */
-.ytp-autohide .obs-toast {
-  bottom: 16px;
+/* Tam ekranda kontrol çubuğu 96px, ilerleme çubuğunun tıklama alanı ~120px */
+.ytp-big-mode .obs-toast,
+.ytp-big-mode .obs-ask {
+  --obs-lift: 136px;
+}
+
+/* Kontrol çubuğu gizlenince kutu da aşağı insin */
+.ytp-autohide .obs-toast,
+.ytp-autohide .obs-ask {
+  --obs-lift: 16px;
+}
+
+/* Bir önceki sahnenin "geçildi" bildirimi hâlâ duruyorsa kutu onun üstüne çıksın */
+.obs-ask.is-stacked {
+  bottom: calc(var(--obs-lift) + 56px); /* 48px kutu + 8px boşluk */
 }
 
 .obs-toast-icon {
@@ -262,6 +284,62 @@
   }
 }
 
+/* ---------- Bilirkişi kutusu ---------- */
+/* Gövdesini bildirimle paylaşır; farkı: sahne boyunca durur ve kalan süreyi sayar. */
+
+.obs-ask-icon svg {
+  width: 15px;
+  height: 15px;
+  margin-left: 0; /* terazi simetrik: optik kaydırma gerekmez */
+}
+
+.obs-ask-count {
+  color: #fff;
+  font-weight: 600;
+}
+
+.obs-ask-close {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  margin-right: 2px;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.55);
+  background: transparent;
+  font-size: 17px;
+  transition-property: background-color, color, scale;
+}
+
+.obs-ask-close:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.obs-ask-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.obs-ask-bar i {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: var(--obs-accent);
+  transition: width 1s linear; /* genişlik saniyede bir yazılıyor, aradaki boşluğu kaydırarak doldur */
+}
+
+/* Sahnenin sonu henüz taranmadı: süre yerine belirsiz çubuk */
+.obs-ask[data-known="no"] .obs-ask-bar i {
+  width: 40%;
+  transition: none;
+  animation: obs-slide 1.1s var(--obs-ease) infinite;
+}
+
 /* ---------- Debug ---------- */
 
 .obs-debug {
@@ -274,13 +352,19 @@
 @media (prefers-reduced-motion: reduce) {
   .obs-cover,
   .obs-toast,
+  .obs-ask,
   .obs-btn,
-  .obs-toast-action {
+  .obs-toast-action,
+  .obs-ask-close {
     transition-duration: 0ms !important;
   }
   .obs-cover-progress::after {
     animation: none;
     width: 100%;
     opacity: 0.5;
+  }
+  .obs-ask-bar i {
+    transition: none;
+    animation: none;
   }
 }

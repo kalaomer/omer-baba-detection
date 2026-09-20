@@ -1,3 +1,14 @@
+## 0.6.0'da yenilikler
+
+- **Bilirkişi modu** (Atlama bölümünde, varsayılan kapalı): Sahne atlanmaz; Ömer Baba sahnesi
+  başlayınca oynatıcıda kalan süreyi sayan bir kutu çıkar. Sahne akmaya devam eder, geçmek
+  istersen kutudaki **Sahneyi geç** butonu normal atlamayı çalıştırır.
+- Oynatıcı içi kutular yukarı alındı: artık ilerleme çubuğunun ve sahne önizlemesinin tıklama
+  alanını kapatmıyorlar (pencerede 88 px, tam ekranda 136 px).
+
+Eklentiyi güncelledikten sonra açık YouTube sekmelerini yenilemeyi unutma; Chrome yeni sürümü
+açık sekmelere kendiliğinden uygulamaz.
+
 ## Kurulum
 
 Chrome Web Store sürümü yayınlanana kadar eklentiyi elle kurabilirsin (Chrome, Edge, Brave ve diğer Chromium tarayıcılar):

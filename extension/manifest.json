@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Ömer Baba Atlatıcı",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "YouTube'da Ömer Baba yoğunluklu sahneleri yüz tanıma ile otomatik atlar. Tüm işlem cihazında yapılır.",
   "permissions": [
     "storage"

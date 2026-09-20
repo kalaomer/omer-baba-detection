@@ -21,6 +21,7 @@ Finder'ın "Sıkıştır" özelliği dosyaları klasörün içine koyar ve `__MA
 • Görünmeden atlama: YouTube'un zaten indirdiği ileri kareleri önden tarar, Ömer Baba ekrana gelmeden sahnenin sonuna geçer.
 • Canlı şerit: Popup'ta önümüzdeki 30 saniyeyi ve yaklaşan sahneleri görürsünüz.
 • Yalnızca tek başınayken: İsterseniz Ömer Baba karede başka biriyle birlikteyken sahneyi atlamaz.
+• Bilirkişi modu: Sahne hiç atlanmaz; onun yerine kalan süreyi sayan bir kutu çıkar, geçmek isterseniz tek tık.
 • Kanal filtresi: Varsayılan olarak yalnızca @KurtlarVadisi ve @KurtlarVadisiOfficial videolarında çalışır; listeyi siz düzenlersiniz.
 • Ömer Baba'sız bölümler: Başlığında 235. bölüm ve sonrası yazan videolarda tarama yapmaz.
 • Kaçış yolları: Perdede "Yine de izle", atlamadan sonra "Geri al".
@@ -59,7 +60,7 @@ Skips scenes featuring the character Ömer Baba while watching Kurtlar Vadisi Pu
 **`storage` izin gerekçesi**
 
 ```
-Stores the user's settings (on/off switch, recognition threshold, look-ahead, "only when alone" mode, episode cutoff, allowed channel list) and two counters (scenes skipped, time saved) in chrome.storage.local. This data stays on the user's device and is never transmitted.
+Stores the user's settings (on/off switch, recognition threshold, look-ahead, "only when alone" mode, expert-witness mode, episode cutoff, allowed channel list) and two counters (scenes skipped, time saved) in chrome.storage.local. This data stays on the user's device and is never transmitted.
 ```
 
 **Ana makine (host) izni gerekçesi**

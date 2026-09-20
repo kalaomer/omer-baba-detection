@@ -3,11 +3,11 @@ const { DEFAULT_CHANNELS, channelKey, displayChannel } = globalThis.OmerBabaChan
 
 const DEFAULTS = {
   enabled: true, threshold: null, debug: false, lookahead: true,
-  alone: false, channelFilter: true, channels: DEFAULT_CHANNELS,
+  alone: false, expert: false, channelFilter: true, channels: DEFAULT_CHANNELS,
   episodeCutoff: true, episodeFrom: 235,
   stats: { skips: 0, seconds: 0 },
 };
-const TOGGLES = ['enabled', 'lookahead', 'alone', 'episodeCutoff', 'channelFilter', 'debug'];
+const TOGGLES = ['enabled', 'lookahead', 'alone', 'expert', 'episodeCutoff', 'channelFilter', 'debug'];
 
 let channels = [];
 
@@ -67,7 +67,8 @@ function setStatus({ tone, word, meta = '', line = '' }) {
   $('statusLine').textContent = line || ' ';
 }
 
-function renderStrip(strip) {
+// expert: bilirkişi modunda sahne geçilmez, yalnızca ne kadar süreceği yazılır
+function renderStrip(strip, expert = false) {
   const box = $('strip');
   if (!strip) {
     box.hidden = true;
@@ -104,7 +105,7 @@ function renderStrip(strip) {
     note.dataset.alert = '';
     note.textContent = sc.in < 0.5
       ? 'Ömer Baba şimdi'
-      : `Ömer Baba ${Math.round(sc.in)} sn sonra${sc.len ? ` · ${Math.round(sc.len)} sn geçilecek` : ''}`;
+      : `Ömer Baba ${Math.round(sc.in)} sn sonra${sc.len ? ` · ${Math.round(sc.len)} sn ${expert ? 'sürecek' : 'geçilecek'}` : ''}`;
   } else {
     note.textContent = strip.covered >= 1 ? 'Temiz' : 'Taranıyor…';
   }
@@ -127,8 +128,8 @@ async function refreshStatus() {
   const meta = st.episode ? `${st.episode}. bölüm` : '';
   const who = st.info ? [st.info.author, st.info.handle && `@${st.info.handle}`].filter(Boolean).join(' · ') : '';
   if (st.allowed === true) {
-    setStatus({ tone: 'on', word: 'Çalışıyor', meta, line: who });
-    if (st.lookahead) renderStrip(st.strip ?? { window: 30, samples: [], covered: 0, scene: null });
+    setStatus({ tone: 'on', word: st.expert ? 'Bilirkişi modu' : 'Çalışıyor', meta, line: who });
+    if (st.lookahead) renderStrip(st.strip ?? { window: 30, samples: [], covered: 0, scene: null }, st.expert);
   } else if (st.reason === 'episode') {
     setStatus({ tone: 'idle', word: 'Taranmıyor', meta, line: 'Bu bölümde Ömer Baba yok.' });
   } else if (st.allowed === false) {

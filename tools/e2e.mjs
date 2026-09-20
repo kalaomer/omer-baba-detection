@@ -6,6 +6,9 @@
 //   --off: eklenti yüklü ama kapalı (karşılaştırma için)
 //   --shorts: /shorts/ sayfası (eklenti orada çalışmamalı)
 //   --alone: "yalnızca tek başınayken geç" modu; --nofilter: kanal filtresi kapalı
+//   --expert: bilirkişi modu (sahne atlanmaz, kutu çıkar; Ömer Baba'nın görülmesi beklenir)
+//   --askskip: kutu çıkınca "Sahneyi geç"e bas (yalnızca --expert ile anlamlı)
+//   --expertAt=N: N. saniyede bilirkişi modunu aç (video oynarken açma yolu)
 //   --flipAt=N: N. saniyede kanal filtresini kapat; --noepisode: bölüm kuralı (235+ tarama) kapalı
 
 import crypto from 'node:crypto';
@@ -37,7 +40,7 @@ const extId = [...crypto.createHash('sha256').update(ext).digest('hex').slice(0,
 {
   const p = await ctx.newPage();
   await p.goto(`chrome-extension://${extId}/popup.html`);
-  await p.evaluate((f) => chrome.storage.local.set({ debug: true, enabled: !f.off, alone: !!f.alone, channelFilter: !f.nofilter, episodeCutoff: !f.noepisode }), flags);
+  await p.evaluate((f) => chrome.storage.local.set({ debug: true, enabled: !f.off, alone: !!f.alone, expert: !!f.expert, channelFilter: !f.nofilter, episodeCutoff: !f.noepisode }), flags);
   await p.close();
 }
 const page = await ctx.newPage();
@@ -73,6 +76,7 @@ const status = () =>
       ad: !!player?.classList.contains('ad-showing'),
       ext: JSON.parse(document.documentElement.dataset.omerBaba || 'null'),
       toast: document.querySelector('.obs-toast:not([hidden])')?.textContent.replace(/\s+/g, ' ').trim() ?? null,
+      ask: document.querySelector('.obs-ask:not([hidden])')?.textContent.replace(/\s+/g, ' ').trim() ?? null,
       path: location.pathname,
       ranges: (() => {
         const fmt = (x) => { const r = []; for (let i = 0; x && i < x.buffered.length; i++) r.push(`${x.buffered.start(i).toFixed(0)}-${x.buffered.end(i).toFixed(0)}`); return r.join(','); };
@@ -91,6 +95,7 @@ const status = () =>
 let prev = null;
 let jumps = 0;
 let undone = false;
+let asked = false;
 let liveHits = 0;
 const msList = [];
 for (let i = 0; i < seconds; i++) {
@@ -107,9 +112,16 @@ for (let i = 0; i < seconds; i++) {
     `tampon=${s.buf?.toFixed(0).padStart(3)}s kanal=${e.channel?.handle ?? '?'}:${e.channel?.allowed === true ? 'izinli' : e.channel?.allowed === false ? `DIŞI(${e.channel.reason})` : 'bekliyor'}${e.channel?.episode ? ` bölüm=${e.channel.episode}` : ''} gölge=${e.shadowPresent ? 'var' : 'yok'} hazır=${e.detectorReady ? 'e' : 'h'} durum=${e.state} perde=${e.covered ? 'e' : 'h'} ` +
     `sims=${JSON.stringify(e.lastSims)} ms=${e.lastMs?.toFixed(0)}${e.detectorError ? ' HATA=' + e.detectorError : ''}` +
     `${e.la ? ` önden=+${e.la.ahead ?? '-'}s seek=${e.la.seekMs?.toFixed(0) ?? '-'}ms önceden=${e.la.preSkips}${e.la.scene ? ` sahne=${e.la.scene.start}-${e.la.scene.endKnown ? e.la.scene.resume : '?'}` : ''}` : ''}` +
-    `${e.lastError ? ' sonHata=' + e.lastError : ''}${jumped ? `  <<< SIÇRAMA +${(s.t - prev.t).toFixed(1)}s` : ''}${s.toast ? `  [toast: ${s.toast}]` : ''}`;
+    `${e.lastError ? ' sonHata=' + e.lastError : ''}${jumped ? `  <<< SIÇRAMA +${(s.t - prev.t).toFixed(1)}s` : ''}${s.toast ? `  [toast: ${s.toast}]` : ''}${s.ask ? `  [kutu: ${s.ask}]` : ''}`;
   console.log(line);
   if (flags.ranges && i % 5 === 0) console.log(`      tampon aralıkları: ana=[${s.ranges.main}] gölge=[${s.ranges.shadow}] çözünürlük=${s.ranges.res} bozuk=${s.ranges.broken} src-eşleşme=${s.ranges.srcMatch}`);
+  if (flags.expertAt && i + 1 === Number(flags.expertAt)) {
+    const p = await ctx.newPage();
+    await p.goto(`chrome-extension://${extId}/popup.html`);
+    await p.evaluate(() => chrome.storage.local.set({ expert: true }));
+    await p.close();
+    console.log('      -> bilirkişi modu açıldı');
+  }
   if (flags.flipAt && i + 1 === Number(flags.flipAt)) {
     // Oynatma sırasında kanal filtresini kapat (gölge tamponun sonradan açılma yolunu test eder)
     const p = await ctx.newPage();
@@ -117,6 +129,11 @@ for (let i = 0; i < seconds; i++) {
     await p.evaluate(() => chrome.storage.local.set({ channelFilter: false }));
     await p.close();
     console.log('      -> kanal filtresi kapatıldı');
+  }
+  if (flags.askskip && s.ask && !asked) {
+    asked = true;
+    await page.locator('.obs-ask .obs-toast-action').click();
+    console.log('      -> "Sahneyi geç" tıklandı');
   }
   if (flags.undo && s.toast && !undone) {
     undone = true;

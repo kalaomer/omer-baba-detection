@@ -15,6 +15,8 @@ hiçbir kare dışarı gönderilmez.
   çalışır. Başlığında 235. bölüm ve sonrası yazan (Ömer Baba'nın artık olmadığı) videolarda
   ve Shorts'ta çalışmaz.
 - **Tek başına modu:** İstersen yalnızca Ömer Baba karede tek başınayken atlar, ikili çekimleri izlersin.
+- **Bilirkişi modu:** Sahneyi hiç atlamaz; sahne akarken kalan süreyi sayan bir kutu çıkarır,
+  geçmek istersen tek tık. (Dizileri izlemekle görevlendirilen bilirkişilere selam olsun.)
 - **Kaçış yolları:** "Yine de izle" ve atlamadan sonra "Geri al".
 
 ## Kurulum
@@ -28,7 +30,9 @@ sayfasından son sürümün `omer-baba-atlatici-…zip` dosyasını indirip bir 
 3. YouTube'da bir Kurtlar Vadisi Pusu videosu aç. Model ilk oynatmada ~1 saniyede yüklenir.
 
 Elle kurulan sürüm otomatik güncellenmez; yeni sürümde dosyaları yenileyip `chrome://extensions`
-sayfasında eklentinin **Yenile** simgesine bas.
+sayfasında eklentinin **Yenile** simgesine bas. Chrome, açık sekmelere yeni content script'i
+enjekte etmez: eklentiyi yeniledikten sonra **açık YouTube sekmelerini de yenile**, yoksa o
+sekmeler eski sürümü çalıştırmaya devam eder (yeni ayarlar orada işe yaramaz).
 
 ## Kullanım
 
@@ -41,6 +45,8 @@ Araç çubuğundaki ikon popup'ı açar:
 - **Atlama:**
   - **Önden tara:** Ömer Baba görünmeden sahneyi geçer.
   - **Yalnızca tek başınayken:** Ömer Baba karede başka biriyle birlikteyse atlamaz.
+  - **Bilirkişi modu:** Hiçbir sahne atlanmaz; onun yerine oynatıcıda kalan süreyi sayan bir
+    kutu çıkar (aşağıya bak).
   - **Ömer Baba'sız bölümler** (varsayılan açık, 235): Başlığında bu bölüm ve sonrası yazan
     videolar taranmaz. Numara düzenlenebilir.
 - **Kanallar:** "Yalnızca bu kanallarda" anahtarı ve kanal listesi. "+ Kanal ekle" ile
@@ -50,7 +56,8 @@ Araç çubuğundaki ikon popup'ı açar:
 
 Oynatıcıda: sahne geçilirken perde iner ve ses kapanır ("Yine de izle" ile iptal edilir).
 Sahne geçince sol altta bir bildirim çıkar ("18 sn atlandı · görünmeden") ve 6 saniye boyunca
-**Geri al** sunar; üzerine gelince süre durur.
+**Geri al** sunar; üzerine gelince süre durur. Kutular, oynatıcının ilerleme çubuğunun ve sahne
+önizlemesinin tıklama alanının üstünde durur; kontrol çubuğu gizlenince aşağı iner.
 
 ## Nasıl çalışır
 
@@ -97,6 +104,22 @@ canlı embedding'ler aynı ön ve son işlemden geçer.
 - Önden taramanın göremediği anlarda devreye girer: videoyu açar açmaz ya da elle bir Ömer
   Baba sahnesinin ortasına sardığında.
 
+### Bilirkişi modu (varsayılan kapalı)
+
+Türkiye'de dizileri izlemekle görevlendirilen bilirkişiler var; onların sahneyi atlamaması
+gerekebilir. Bu mod açıkken tespit aynen çalışır, yalnızca sonucu değişir:
+
+- Ne perde iner ne ses kapanır, hiçbir sahne kendiliğinden atlanmaz. Otomatik atlamanın
+  tetikleneceği anda oynatıcının sol altında bir kutu açılır: "Bilirkişi modu · Ömer Baba
+  sahnesi · 12 sn kaldı". Sahne kutunun arkasında akmaya devam eder.
+- Kalan süre önden taramadan gelir. Sahnenin sonu, son isabetten sonra 10 saniyelik temiz örnek
+  taranınca kesinleşir; uzun sahnelerde kutu bu yüzden önce "süre ölçülüyor…" yazar, sonu
+  bulununca sayaç başlar. Önden tarama kapalıysa süre hiç hesaplanamaz, kutu "sahne sürüyor" der.
+- **Sahneyi geç** butonu normal atlama yolunu çalıştırır (perde iner, sahnenin sonuna sarılır,
+  ardından her zamanki "Geri al" bildirimi çıkar). **×** kutuyu o sahne için kapatır.
+- Kutu, sahne bitince kendiliğinden kalkar; sahnenin sonu bilinmiyorsa Ömer Baba 6 saniye
+  görünmeyince kapanır.
+
 ### Kanal filtresi
 
 - Kanal, YouTube oynatıcısının kendi verisinden (`getPlayerResponse()`: kanal kimliği ve
@@ -132,6 +155,8 @@ canlı embedding'ler aynı ön ve son işlemden geçer.
   karede başka biri de var.
 - **Kaçış yolları:** "Yine de izle" ve "Geri al", Ömer Baba ekranda kaldığı sürece o sahneyi
   korur; sahne bölünmez.
+- **Bilirkişi modu her şeyin önünde:** Açıkken tespit ve önden tarama çalışır ama atlama yerine
+  kutu çıkar; "tek başına" ve bölüm/kanal kuralları aynen geçerlidir.
 - Reklam oynarken analiz yapılmaz.
 
 ## Doğruluk
@@ -303,6 +328,7 @@ node tools/e2e.mjs IPwAfYRNtlA 45                         # Ömer Baba yok: atla
 node tools/e2e.mjs 3kS_bojhZt8 40 --start=300             # liste dışı kanal: pasif kalmalı
 node tools/e2e.mjs 3kS_bojhZt8 40 --start=300 --nofilter  # aynı video, filtre kapalı: atlamalı
 node tools/e2e.mjs mTZTz3yT3PA 45 --start=4440 --alone    # tek başına modu: ikili çekimleri atlamamalı
+node tools/e2e.mjs mTZTz3yT3PA 45 --start=4225 --expert   # bilirkişi modu: atlama yok, kutu çıkmalı
 node tools/e2e.mjs pO2ilL85kzk 15 --start=600             # 235. bölüm: pasif kalmalı
 node tools/e2e.mjs 9wlOufboEpo 20 --shorts --nofilter     # Shorts: pasif kalmalı
 node tools/e2e.mjs VDtf9lAmpvM 30 --undo                  # "Geri al" akışı

@@ -26,7 +26,7 @@
   // alone: yalnızca Ömer Baba karede tek başınayken geç; channelFilter: yalnızca listedeki kanallarda çalış
   const settings = {
     enabled: true, threshold: null, debug: false, lookahead: true,
-    alone: false, channelFilter: true, channels: DEFAULT_CHANNELS,
+    alone: false, expert: false, channelFilter: true, channels: DEFAULT_CHANNELS,
     // episodeCutoff: başlığındaki bölüm numarası episodeFrom ve üstündeyse tarama (Ömer Baba 233. bölümde vefat ediyor)
     episodeCutoff: true, episodeFrom: 235,
   };
@@ -42,6 +42,13 @@
     if (changes.channels || changes.channelFilter || changes.episodeCutoff || changes.episodeFrom) gate = { vid: null, allowed: null, info: null };
     if (!settings.debug) debugLayer?.remove();
     if (!settings.enabled && state === 'watch') uncover();
+    if (!settings.enabled || !settings.expert) clearAsk();
+    // Bilirkişi moduna geçilirken "tespit edildi" perdesi inmiş olabilir: canlı tespit kolu
+    // artık perdeyi kaldıran satıra ulaşmıyor, burada kaldır.
+    if (changes.expert) {
+      win = [];
+      if (settings.expert && state === 'watch') uncover();
+    }
   });
 
   // ---------------- Dedektör bağlantısı (gizli eklenti iframe'i + worker) ----------------
@@ -281,6 +288,116 @@
     armToastTimer(TOAST_MS);
   }
 
+  // ---------------- Bilirkişi modu ----------------
+  // Sahne atlanmaz: kutu açılır, sahne akarken kalan süreyi sayar; geçme kararı kullanıcınındır.
+  // (Adı, dizileri izlemekle görevlendirilen bilirkişilere selam: onların sahneyi geçmemesi gerekir.)
+  const ASK_GRACE = 6; // sahnenin sonu bilinmiyorsa: Ömer Baba bu kadar sn görünmezse kutu kalkar
+  const SCALES_ICON =
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.05 2.2h1.9v1H20a.95.95 0 1 1 0 1.9h-7.05v14.15h3.15a.95.95 0 1 1 0 1.9H7.9a.95.95 0 1 1 0-1.9h3.15V5.1H4a.95.95 0 1 1 0-1.9h7.05V2.2Z"/><path d="M4.6 5.1 8.45 13.6a3.85 3.85 0 0 1-7.7 0L4.6 5.1Z"/><path d="M19.4 5.1 23.25 13.6a3.85 3.85 0 0 1-7.7 0L19.4 5.1Z"/></svg>';
+
+  let askBox = null;
+  // { href, start, end: sn | null, lastSeen, laSeen, dismissed }
+  // end: önden taramadan gelen sahne sonu; laSeen: kutuyu önden tarama mı açtı (canlı tespit mi)
+  let askScene = null;
+  let askSec; // kutuda yazan saniye: kare başına değil, yalnızca değişince yazılır
+
+  function buildAsk() {
+    askBox = document.createElement('div');
+    askBox.className = 'obs-ask';
+    askBox.setAttribute('role', 'status');
+    askBox.hidden = true;
+    askBox.innerHTML = `
+      <span class="obs-toast-icon obs-ask-icon">${SCALES_ICON}</span>
+      <span class="obs-toast-text">
+        <span class="obs-toast-title">Bilirkişi modu</span>
+        <span class="obs-toast-detail" aria-live="off">Ömer Baba sahnesi · <b class="obs-ask-count"></b></span>
+      </span>
+      <button type="button" class="obs-toast-action">Sahneyi geç</button>
+      <button type="button" class="obs-ask-close" aria-label="Kutuyu kapat">×</button>
+      <span class="obs-ask-bar" aria-hidden="true"><i></i></span>`;
+    swallow(askBox);
+    askBox.querySelector('.obs-toast-action').addEventListener('click', askSkip);
+    askBox.querySelector('.obs-ask-close').addEventListener('click', () => {
+      if (askScene) askScene.dismissed = true; // bu sahne için bir daha açılma
+      hideAsk();
+    });
+  }
+
+  function hideAsk() {
+    if (!askBox || !askBox.classList.contains('is-open')) return;
+    askBox.classList.remove('is-open');
+    clearTimeout(askBox._hideTimer);
+    askBox._hideTimer = setTimeout(() => (askBox.hidden = true), 200);
+    askSec = undefined;
+  }
+
+  function clearAsk() {
+    askScene = null;
+    hideAsk();
+  }
+
+  // Kullanıcı yine de geçmek istedi: normal atlama yolu (perde iner, sahnenin sonuna sarılır)
+  function askSkip() {
+    const video = findVideo();
+    clearAsk();
+    if (video) skipScene(video);
+  }
+
+  // Canlı tespitten gelen isabet: sahnenin sonu bilinmiyor, önden tarama yetişirse dolar
+  function noteAskLive(video) {
+    const now = video.currentTime;
+    if (!askScene) askScene = { href: location.href, start: now, end: null, lastSeen: now, laSeen: false, dismissed: false };
+    else askScene.lastSeen = Math.max(askScene.lastSeen, now);
+  }
+
+  // Her karede: kutuyu aç, kalan süreyi tazele, sahne bitince kapat
+  function expertGuard(video) {
+    const now = video.currentTime;
+    const sc = settings.lookahead ? sceneAt(now) : null; // null: önden tarama şu anı kapsamıyor
+    const inScene = !!sc && !sc.none && sc.hits >= SCENE_MIN_HITS && now >= (sc.prevMiss ?? sc.start) - LA_LEAD;
+    if (inScene) {
+      askScene ??= { href: location.href, start: now, end: null, lastSeen: now, laSeen: true, dismissed: false };
+      askScene.end = sc.endKnown ? sc.resume : null;
+      // "en son ne zaman ekrandaydı": önden taramanın ilerideki isabeti değil, şu an. Yoksa iki
+      // sahne bir süre tek sahne göründüğünde kutu aradaki temiz bölümde de açık kalıyor.
+      askScene.lastSeen = now;
+      askScene.laSeen = true;
+    }
+    if (askScene) {
+      // Sonu bilinen sahne sonunda kapanır. Kutuyu önden tarama açtıysa sahne bitince hemen
+      // kapanır; yalnızca canlı tespit açtıysa sahnenin sonu bilinmediği için ASK_GRACE beklenir.
+      const over = askScene.end != null ? now >= askScene.end
+        : askScene.laSeen && sc ? !inScene
+        : now - askScene.lastSeen > ASK_GRACE;
+      if (askScene.href !== location.href || now < askScene.start - 1 || over) clearAsk();
+    }
+    renderAsk(video);
+  }
+
+  function renderAsk(video) {
+    if (!askScene || askScene.dismissed) return;
+    if (!askBox) buildAsk();
+    const host = playerOf(video);
+    if (askBox.parentElement !== host) host.appendChild(askBox);
+    if (!askBox.classList.contains('is-open')) {
+      clearTimeout(askBox._hideTimer);
+      askBox.hidden = false;
+      askSec = undefined;
+      void askBox.offsetWidth; // giriş animasyonu başlangıç durumundan başlasın
+      askBox.classList.add('is-open');
+    }
+    askBox.classList.toggle('is-stacked', !!toast && !toast.hidden); // "geçildi" bildirimiyle üst üste binmesin
+    const sec = askScene.end == null ? null : Math.max(0, Math.ceil(askScene.end - video.currentTime));
+    if (sec === askSec) return;
+    askSec = sec;
+    askBox.dataset.known = sec == null ? 'no' : 'yes';
+    askBox.querySelector('.obs-ask-count').textContent =
+      sec != null ? `${sec} sn kaldı` : settings.lookahead ? 'süre ölçülüyor…' : 'sahne sürüyor';
+    const span = askScene.end == null ? 0 : askScene.end - askScene.start;
+    askBox.querySelector('.obs-ask-bar i').style.width =
+      span > 0 ? `${Math.min(100, ((video.currentTime - askScene.start) / span) * 100)}%` : '';
+  }
+
   // ---------------- Debug katmanı ----------------
   let debugLayer = null;
 
@@ -319,7 +436,7 @@
       }
     }
     const info = r.type === 'result'
-      ? `${r.ms.toFixed(0)} ms · ${r.faces.length}/${r.totalDetected} yüz · eşik ${threshold().toFixed(2)}${settings.alone ? ' · tek başına modu' : ''} · ${state} · pencere ${win.map((h) => (h ? '■' : '□')).join('')}`
+      ? `${r.ms.toFixed(0)} ms · ${r.faces.length}/${r.totalDetected} yüz · eşik ${threshold().toFixed(2)}${settings.alone ? ' · tek başına modu' : ''}${settings.expert ? ' · bilirkişi modu' : ''} · ${state} · pencere ${win.map((h) => (h ? '■' : '□')).join('')}`
       : `hata: ${r.error}`;
     const lines = [info, lookaheadSummary(video)];
     lines.forEach((text, i) => {
@@ -642,9 +759,12 @@
 
   const inSuppress = (t) => suppress && suppress.href === location.href && t >= suppress.from && t <= suppress.to;
 
-  // Her karede: yaklaşan bir sahnenin başına gelindiyse, Ömer Baba görünmeden atla
+  // Her karede: bilirkişi modunda kutuyu sürer; değilse yaklaşan sahnenin başında Ömer Baba görünmeden atlar
   function guard(video) {
-    if (!settings.lookahead || state !== 'watch' || video.paused || isAd(video) || gate.allowed !== true || gate.vid !== videoKey()) return;
+    if (state !== 'watch' || isAd(video) || gate.allowed !== true || gate.vid !== videoKey()) return clearAsk();
+    if (settings.expert) return expertGuard(video);
+    clearAsk();
+    if (!settings.lookahead || video.paused) return;
     const now = video.currentTime;
     const sc = sceneAt(now);
     if (!sc || sc.none || sc.hits < SCENE_MIN_HITS) return;
@@ -709,6 +829,11 @@
       if (settings.debug) drawDebug(video, r);
       if (r.type !== 'result' || state !== 'watch') return;
       const hit = isHit(r);
+      if (settings.expert) {
+        if (hit) noteAskLive(video);
+        expertGuard(video); // kare geri çağrısı yoksa kutuyu süren tek yer burası
+        return; // perde inmez, sahne atlanmaz: karar kutuda
+      }
       if (suppressed(video)) {
         if (hit) suppress.to = Math.max(suppress.to, video.currentTime + SUPPRESS_GRACE);
         win = [];
@@ -730,6 +855,7 @@
     abortSkip = true;
     win = [];
     uncover();
+    clearAsk();
     debugLayer?.remove();
   });
 
@@ -743,7 +869,7 @@
     const page = isVideoPage() ? 'watch' : location.pathname.startsWith('/shorts/') ? 'shorts' : 'other';
     const g = page === 'watch' ? channelGate() : null;
     sendResponse({
-      page, enabled: settings.enabled, lookahead: settings.lookahead,
+      page, enabled: settings.enabled, lookahead: settings.lookahead, expert: settings.expert,
       allowed: g?.allowed ?? null, reason: g?.reason ?? null, episode: g?.episode ?? null,
       info: g?.info ?? (page === 'watch' ? videoInfo() : null), detectorReady, shadow: laStats.shadow,
       strip: g?.allowed && settings.enabled && settings.lookahead ? stripData(findVideo()) : null,
@@ -754,7 +880,8 @@
   document.documentElement.addEventListener('omer-baba:status', () => {
     document.documentElement.dataset.omerBaba = JSON.stringify({
       detectorReady, detectorError, state, covered, win, threshold: threshold(),
-      channel: { allowed: gate.allowed, handle: gate.info?.handle ?? null, reason: gate.reason ?? null, episode: gate.episode ?? null }, alone: settings.alone,
+      channel: { allowed: gate.allowed, handle: gate.info?.handle ?? null, reason: gate.reason ?? null, episode: gate.episode ?? null },
+      alone: settings.alone, expert: settings.expert, ask: askScene,
       mirror: document.documentElement.dataset.omerBabaMirror ?? null,
       shadowPresent: !!document.querySelector('omer-baba-shadow'),
       lastMs: lastResult?.ms ?? null, lastSims: lastResult?.faces?.map((f) => +f.sim.toFixed(3)) ?? null,
